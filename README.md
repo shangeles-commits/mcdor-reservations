@@ -47,15 +47,15 @@ php -S localhost:8000
 
 Open `http://localhost:8000/`. Do not expose this prototype or PHP's development server to the public internet.
 
-## Create an admin account
+## Admin access (local only)
 
-First sign up normally in the website with the phone number that should become the local admin. From a terminal in the project directory, run:
+Admin credentials are intentionally not included in this repository. Each teammate should create an account on their own local database, then promote that account. Start MySQL, sign up in the website with the phone number you want to use, and run this command from the project directory:
 
 ```powershell
-php scripts/promote_admin.php 09123456789
+php scripts/promote_admin.php YOUR_REGISTERED_PHONE
 ```
 
-The script is CLI-only, updates an existing user by phone, and does not create public admin registration. Sign out and back in to load the new role into the session.
+Replace `YOUR_REGISTERED_PHONE` with the phone number used during signup. The script runs only in the terminal, promotes an existing account, and does not create public admin registration. Sign out and back in to load the admin role. Do not commit or share local account passwords.
 
 ## Main folders and files
 
