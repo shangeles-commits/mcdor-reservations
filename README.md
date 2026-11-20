@@ -1,5 +1,6 @@
-# FINALPROJECT
-**WEB APPLICATION**
+# mcdor-reservations
+
+**WEB APPLICATION - FINALPROJECT**
 
 ## McDor Restaurant Reservation Prototype
 
