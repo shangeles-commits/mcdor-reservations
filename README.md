@@ -85,7 +85,7 @@ Only active bookings have an `occupied_slots` row. Reschedule, cancellation, and
 - [ ] Complete a booking with a valid future slot, guests, package, and optional extras.
 - [ ] Attempt to book the same table/date/time twice; the second confirmation must be rejected with a choose-another-slot message.
 - [ ] Verify assigned table and calculated receipt total; choose both payment dropdown options and confirm no card data is requested.
-- [ ] Look up the receipt using its reservation ID; try a different customer's ID and confirm no details appear.
+- [ ] Select a reservation from the account's reservation dropdown and verify its ID, date/time, payment method, and statuses; confirm another customer's reservations are not listed.
 - [ ] Reschedule to a free slot, then test a full slot and confirm the original booking remains intact.
 - [ ] Cancel a booking and verify its slot becomes available; test the admin no-show action too.
 - [ ] Promote a local account, verify admin-only access, search by ID and phone, update payment status, edit/deactivate a package and table.

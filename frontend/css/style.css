@@ -77,6 +77,9 @@ button:hover, .button:hover { background: var(--brand-dark); color: white; }
 .link-button { padding: 0; border: 0; background: transparent; color: var(--brand-dark); font: inherit; cursor: pointer; }
 .link-button:hover { background: transparent; text-decoration: underline; }
 .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 1rem; }
+.reservation-selector { display: grid; justify-items: start; gap: .75rem; margin-top: 1rem; }
+.reservation-selector label { width: 100%; margin: 0; }
+.reservation-selector select { margin-top: .35rem; }
 fieldset { margin: 1.5rem 0; padding: 1rem; border: 1px solid var(--line); border-radius: 8px; }
 legend { padding: 0 .4rem; font-weight: 700; }
 .choice { display: flex; align-items: flex-start; gap: .2rem; margin: .75rem 0; font-weight: 400; }

@@ -54,6 +54,6 @@ Do not edit `database/setup.sql` to quietly change an already-used schema. Add a
 
 - **Accounts:** register, reject duplicate phone, log in with the phone/password, log out, and verify a customer cannot open admin pages.
 - **Booking:** test date limits, each fixed slot, guest counts 1–8, smallest suitable table, package and extra selection, and a slot with no suitable table.
-- **Reservations:** confirm receipt ID and snapshots; look up an owned ID; try another user's ID and confirm no details appear; reschedule, reject a conflict without losing the old slot, then cancel and reuse the released slot.
+- **Reservations:** confirm receipt ID and snapshots; select a reservation from the signed-in account's list and verify the ID, date/time, payment method, and statuses; confirm another user's reservations are not listed; reschedule, reject a conflict without losing the old slot, then cancel and reuse the released slot.
 - **Admin:** search by ID and phone, update payment status, mark no-show and confirm the slot is released, edit/deactivate a package and a table, and confirm neither is physically deleted.
 - **Integration:** complete signup → login → date/time/guests → package/extras → review → simulated or pay-at-restaurant confirmation → success receipt → lookup → reschedule/cancel.
