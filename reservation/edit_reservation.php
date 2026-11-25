@@ -14,8 +14,10 @@ if ($reservation['reservation_status'] !== 'active') {
 $error = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     require_csrf();
-    $date = trim($_POST['reservation_date'] ?? '');
-    $time = trim($_POST['reservation_time'] ?? '');
+    $dateInput = $_POST['reservation_date'] ?? '';
+    $timeInput = $_POST['reservation_time'] ?? '';
+    $date = is_string($dateInput) ? trim($dateInput) : '';
+    $time = is_string($timeInput) ? trim($timeInput) : '';
     $connection = db();
     try {
         // Release and claim slots inside one transaction so a failed move keeps the old slot.
@@ -60,22 +62,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 $today = (new DateTimeImmutable('today', new DateTimeZone('Asia/Manila')))->format('Y-m-d');
 $maxDate = (new DateTimeImmutable('today', new DateTimeZone('Asia/Manila')))->modify('+30 days')->format('Y-m-d');
+$selectedDate = is_string($_POST['reservation_date'] ?? null) ? $_POST['reservation_date'] : $reservation['reservation_date'];
+$selectedTime = is_string($_POST['reservation_time'] ?? null)
+    ? $_POST['reservation_time']
+    : substr((string)$reservation['reservation_time'], 0, 5);
 $pageTitle = 'Change reservation time';
 require dirname(__DIR__) . '/frontend/layout/header.php';
 ?>
 <section class="panel narrow">
     <h1>Change reservation time</h1>
     <p>Reservation #<?= (int)$reservation['id'] ?> · <?= (int)$reservation['guest_count'] ?> guest(s)</p>
+    <p class="muted">Choose a time at least 2 hours ahead, within the next 30 days. Times are in Asia/Manila.</p>
     <?php if ($error): ?><p class="notice error"><?= e($error) ?></p><?php endif; ?>
     <form method="post">
         <?= csrf_field() ?><input type="hidden" name="reservation_id" value="<?= (int)$reservation['id'] ?>">
-        <label>Date <input type="date" name="reservation_date" min="<?= e($today) ?>" max="<?= e($maxDate) ?>" required value="<?= e($_POST['reservation_date'] ?? $reservation['reservation_date']) ?>"></label>
+        <label>Date <input type="date" name="reservation_date" min="<?= e($today) ?>" max="<?= e($maxDate) ?>" required value="<?= e($selectedDate) ?>"></label>
         <label>Time
             <select name="reservation_time" required>
-                <?php foreach (allowed_slots() as $slot): ?><option value="<?= e($slot) ?>" <?= substr((string)$reservation['reservation_time'], 0, 5) === $slot ? 'selected' : '' ?>><?= e($slot) ?></option><?php endforeach; ?>
+                <?php foreach (allowed_slots() as $slot): ?><option value="<?= e($slot) ?>" <?= $selectedTime === $slot ? 'selected' : '' ?>><?= e((new DateTimeImmutable($slot))->format('g:i A')) ?></option><?php endforeach; ?>
             </select>
         </label>
         <button type="submit">Save new time</button>
     </form>
+    <p class="muted"><a href="<?= e(app_url('reservation/my_reservation.php')) ?>">Back to my reservation</a></p>
 </section>
 <?php require dirname(__DIR__) . '/frontend/layout/footer.php'; ?>
