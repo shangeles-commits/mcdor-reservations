@@ -49,7 +49,7 @@ require __DIR__ . '/frontend/layout/header.php';
             <p class="story-description">Our menus follow the farms, waters, and makers of the Pacific Northwest. Every plate begins with a relationship and ends with something memorable.</p>
             <div class="story-details">
                 <div><small>Dinner</small><strong>Tue — Sun, from 5pm</strong></div>
-                <div><small>Location</small><strong>128 NW Alder Street</strong></div>
+                <div><small>Location</small><strong>128 Nicanor Reyes Street</strong></div>
                 <div><small>Dress</small><strong>Come as you are</strong></div>
             </div>
         </div>
