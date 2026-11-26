@@ -2,6 +2,7 @@
 $pageTitle = $pageTitle ?? 'McDor Reservations';
 $signedInUser = current_user();
 $notice = take_flash();
+$stylesheetVersion = filemtime(__DIR__ . '/../css/style.css');
 ?>
 <!doctype html>
 <html lang="en">
@@ -9,7 +10,7 @@ $notice = take_flash();
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title><?= e($pageTitle) ?> | McDor Reservations</title>
-    <link rel="stylesheet" href="<?= e(app_url('frontend/css/style.css')) ?>">
+    <link rel="stylesheet" href="<?= e(app_url('frontend/css/style.css?v=' . $stylesheetVersion)) ?>">
 </head>
 <body class="<?= !empty($isHomePage) ? 'home-page' : 'interior-page' ?>">
 <header class="site-header">

@@ -8,6 +8,25 @@ if (!$draft || !valid_reservation_datetime($draft['date'], $draft['time'])) {
 }
 $packages = db()->query('SELECT id, name, description, price_per_guest FROM menu_packages WHERE active = 1 ORDER BY name')->fetchAll();
 $extras = db()->query('SELECT id, name, price_per_guest FROM extras WHERE active = 1 ORDER BY name')->fetchAll();
+$packageImages = [
+    'burger with fries and drink' => ['packages/burger-meal.jpg', 'extras/extra-fries.jpg'],
+    'chicken sandwich with drink' => 'packages/chicken-sandwich.jpg',
+    'fried chicken and spaghetti with drink' => 'packages/spaghetti.jpg',
+    'burger steak with rice and drink' => 'packages/burger-steak-rice.jpg',
+    'chicken salad with drink' => 'packages/chicken-salad.jpg',
+    'fried chicken with fries and drink' => ['packages/fried-chicken.jpg', 'extras/extra-fries.jpg'],
+    'fries with sundae' => ['extras/extra-fries.jpg', 'extras/sundae.jpg'],
+    'chicken fillet with rice and drink' => 'packages/chicken-fillet-rice.jpg',
+    'barbeque pork sandwich with drink' => 'packages/barbeque-pork-sandwich.jpg',
+    'mcdor kids meal (chicken fingers and fries)' => ['packages/chicken-fingers.jpg', 'extras/extra-fries.jpg'],
+    'mcdor weekly special (currently spicy chicken fillet with sundae and drink)' => 'packages/spicy-chicken.jpg',
+];
+$extraImages = [
+    'extra fries' => 'extra-fries.jpg',
+    'side salad' => 'side-salad.jpg',
+    'sundae' => 'sundae.jpg',
+    'soft drink' => 'soft-drink.jpg',
+];
 $error = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     require_csrf();
@@ -29,17 +48,50 @@ require dirname(__DIR__) . '/frontend/layout/header.php';
     <?php if ($error): ?><p class="notice error"><?= e($error) ?></p><?php endif; ?>
     <form method="post">
         <?= csrf_field() ?>
-        <fieldset><legend>Menu package (required)</legend>
-            <?php foreach ($packages as $package): ?>
-                <label class="choice"><input type="radio" name="package_id" value="<?= (int)$package['id'] ?>" required <?= (int)($_SESSION['booking_draft']['package_id'] ?? 0) === (int)$package['id'] ? 'checked' : '' ?>>
-                    <span><strong><?= e($package['name']) ?></strong><br><?= e($package['description']) ?><br><span class="muted"><?= money($package['price_per_guest']) ?> per guest</span></span></label>
-            <?php endforeach; ?>
+        <fieldset class="package-options"><legend>Menu package (required)</legend>
+            <div class="package-options-grid">
+                <?php foreach ($packages as $package): ?>
+                    <?php $packageImage = $packageImages[strtolower(trim($package['name']))] ?? ''; ?>
+                    <label class="package-card">
+                        <input type="radio" name="package_id" value="<?= (int)$package['id'] ?>" required <?= (int)($_SESSION['booking_draft']['package_id'] ?? 0) === (int)$package['id'] ? 'checked' : '' ?>>
+                        <?php if (is_array($packageImage)): ?>
+                            <span class="package-card-image-pair">
+                                <?php foreach ($packageImage as $image): ?>
+                                    <img src="<?= e(app_url('frontend/images/' . $image)) ?>" alt="" loading="lazy" decoding="async">
+                                <?php endforeach; ?>
+                            </span>
+                        <?php elseif ($packageImage !== ''): ?>
+                            <img src="<?= e(app_url('frontend/images/' . $packageImage)) ?>" alt="" loading="lazy" decoding="async">
+                        <?php else: ?>
+                            <span class="package-card-placeholder" aria-hidden="true">McDor</span>
+                        <?php endif; ?>
+                        <span class="package-card-content">
+                            <strong><?= e($package['name']) ?></strong>
+                            <span class="package-card-description"><?= e($package['description']) ?></span>
+                            <span class="package-card-price"><?= money($package['price_per_guest']) ?> <small>per guest</small></span>
+                        </span>
+                    </label>
+                <?php endforeach; ?>
+            </div>
         </fieldset>
-        <fieldset><legend>Optional sides (per guest)</legend>
-            <?php foreach ($extras as $extra): ?>
-                <label class="choice"><input type="checkbox" name="extra_ids[]" value="<?= (int)$extra['id'] ?>" <?= in_array((int)$extra['id'], $_SESSION['booking_draft']['extra_ids'] ?? [], true) ? 'checked' : '' ?>>
-                    <span><?= e($extra['name']) ?> — <?= money($extra['price_per_guest']) ?></span></label>
-            <?php endforeach; ?>
+        <fieldset class="side-options"><legend>Optional sides (per guest)</legend>
+            <div class="side-options-grid">
+                <?php foreach ($extras as $extra): ?>
+                    <?php $extraImage = $extraImages[strtolower(trim($extra['name']))] ?? ''; ?>
+                    <label class="side-card">
+                        <input type="checkbox" name="extra_ids[]" value="<?= (int)$extra['id'] ?>" <?= in_array((int)$extra['id'], $_SESSION['booking_draft']['extra_ids'] ?? [], true) ? 'checked' : '' ?>>
+                        <?php if ($extraImage !== ''): ?>
+                            <img src="<?= e(app_url('frontend/images/extras/' . $extraImage)) ?>" alt="" loading="lazy" decoding="async">
+                        <?php else: ?>
+                            <span class="side-card-placeholder" aria-hidden="true">McDor</span>
+                        <?php endif; ?>
+                        <span class="side-card-content">
+                            <strong><?= e($extra['name']) ?></strong>
+                            <span class="side-card-price"><?= money($extra['price_per_guest']) ?> <small>per guest</small></span>
+                        </span>
+                    </label>
+                <?php endforeach; ?>
+            </div>
         </fieldset>
         <button type="submit">Review reservation</button>
     </form>
