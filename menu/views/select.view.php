@@ -1,14 +1,9 @@
 <section class="panel">
-    <div class="page-heading">
-        <div>
-            <h1>Choose your package and sides</h1>
-            <p>
-                <?= e($draft['date']) ?> at <?= e($draft['time']) ?> · 
-                <strong><?= $guestCount ?> guest(s)</strong> · 
-                <a href="<?= e(app_url('reservation/booking.php')) ?>">Change slot</a>
-            </p>
-        </div>
-    </div>
+    <h1>Choose your package and sides</h1>
+    <p>
+        <?= e($draft['date']) ?> at <?= e($draft['time']) ?> · <?= $guestCount ?> guest(s) · 
+        <a href="<?= e(app_url('reservation/booking.php')) ?>">Change slot</a>
+    </p>
 
     <?php if ($error): ?>
         <p class="notice error"><?= e($error) ?></p>
@@ -17,13 +12,12 @@
     <form method="post" id="menu-selection-form" data-guests="<?= $guestCount ?>">
         <?= csrf_field() ?>
 
-        <fieldset>
+        <fieldset class="package-options">
             <legend>Menu package (required)</legend>
-            <?php if (empty($packages)): ?>
-                <p class="muted">No active menu packages are currently available.</p>
-            <?php else: ?>
+            <div class="package-options-grid">
                 <?php foreach ($packages as $package): ?>
-                    <label class="choice">
+                    <?php $packageImage = $packageImages[strtolower(trim($package['name']))] ?? ''; ?>
+                    <label class="package-card">
                         <input 
                             type="radio" 
                             name="package_id" 
@@ -32,24 +26,33 @@
                             required 
                             <?= $selectedPackageId === (int)$package['id'] ? 'checked' : '' ?>
                         >
-                        <span>
-                            <strong><?= e($package['name']) ?></strong><br>
-                            <?= e($package['description']) ?><br>
-                            <span class="muted">
-                                <?= money($package['price_per_guest']) ?> per guest 
-                                (<?= money((float)$package['price_per_guest'] * $guestCount) ?> for <?= $guestCount ?> pax)
+                        <?php if (is_array($packageImage)): ?>
+                            <span class="package-card-image-pair">
+                                <?php foreach ($packageImage as $image): ?>
+                                    <img src="<?= e(app_url('frontend/images/' . $image)) ?>" alt="" loading="lazy" decoding="async">
+                                <?php endforeach; ?>
                             </span>
+                        <?php elseif ($packageImage !== ''): ?>
+                            <img src="<?= e(app_url('frontend/images/' . $packageImage)) ?>" alt="" loading="lazy" decoding="async">
+                        <?php else: ?>
+                            <span class="package-card-placeholder" aria-hidden="true">McDor</span>
+                        <?php endif; ?>
+                        <span class="package-card-content">
+                            <strong><?= e($package['name']) ?></strong>
+                            <span class="package-card-description"><?= e($package['description']) ?></span>
+                            <span class="package-card-price"><?= money($package['price_per_guest']) ?> <small>per guest</small></span>
                         </span>
                     </label>
                 <?php endforeach; ?>
-            <?php endif; ?>
+            </div>
         </fieldset>
 
-        <?php if (!empty($extras)): ?>
-            <fieldset>
-                <legend>Optional sides (per guest)</legend>
+        <fieldset class="side-options">
+            <legend>Optional sides (per guest)</legend>
+            <div class="side-options-grid">
                 <?php foreach ($extras as $extra): ?>
-                    <label class="choice">
+                    <?php $extraImage = $extraImages[strtolower(trim($extra['name']))] ?? ''; ?>
+                    <label class="side-card">
                         <input 
                             type="checkbox" 
                             name="extra_ids[]" 
@@ -57,14 +60,19 @@
                             data-price="<?= (float)$extra['price_per_guest'] ?>"
                             <?= in_array((int)$extra['id'], $selectedExtraIds, true) ? 'checked' : '' ?>
                         >
-                        <span>
-                            <?= e($extra['name']) ?> — <?= money($extra['price_per_guest']) ?> per guest
-                            <span class="muted">(+<?= money((float)$extra['price_per_guest'] * $guestCount) ?> total)</span>
+                        <?php if ($extraImage !== ''): ?>
+                            <img src="<?= e(app_url('frontend/images/extras/' . $extraImage)) ?>" alt="" loading="lazy" decoding="async">
+                        <?php else: ?>
+                            <span class="side-card-placeholder" aria-hidden="true">McDor</span>
+                        <?php endif; ?>
+                        <span class="side-card-content">
+                            <strong><?= e($extra['name']) ?></strong>
+                            <span class="side-card-price"><?= money($extra['price_per_guest']) ?> <small>per guest</small></span>
                         </span>
                     </label>
                 <?php endforeach; ?>
-            </fieldset>
-        <?php endif; ?>
+            </div>
+        </fieldset>
 
         <div class="live-summary" style="padding: 1rem; margin: 1.25rem 0; border: 1px solid #ddd; border-radius: 6px; display: flex; justify-content: space-between; align-items: center;">
             <span>Estimated Total (<?= $guestCount ?> pax):</span>
