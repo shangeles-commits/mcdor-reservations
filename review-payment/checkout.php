@@ -17,7 +17,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } else {
         $connection = db();
         try {
-            // Save the reservation, occupied slot, and extras together or save none of them.
             $connection->beginTransaction();
             $table = checkAvailability($connection, $draft['date'], $draft['time'], (int)$draft['guests']);
             if (!$table) {
@@ -43,9 +42,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
             $connection->commit();
             unset($_SESSION['booking_draft']);
-            $_SESSION['recent_reservation_id'] = $reservationId;
-            redirect('review-payment/success.php');
-        } catch (DomainException $exception) {
+            redirect('review-payment/success.php?id=' . $reservationId);
+        } catch (DomainException | InvalidArgumentException $exception) {
             if ($connection->inTransaction()) {
                 $connection->rollBack();
             }
@@ -68,13 +66,21 @@ try {
     flash($exception->getMessage(), 'error');
     redirect('menu/menu.php');
 }
+$previewTable = checkAvailability(db(), $draft['date'], $draft['time'], (int)$draft['guests']);
 $pageTitle = 'Confirm reservation';
 require dirname(__DIR__) . '/frontend/layout/header.php';
 ?>
 <section class="panel narrow">
     <h1>Confirm reservation</h1>
-    <p><?= e($draft['date']) ?> at <?= e($draft['time']) ?> · <?= e($preview['package']['name']) ?> · <?= money($preview['total']) ?></p>
     <?php if ($error): ?><p class="notice error"><?= e($error) ?></p><?php endif; ?>
+    <dl class="receipt">
+        <dt>Date and time</dt><dd><?= e($draft['date']) ?> at <?= e($draft['time']) ?></dd>
+        <dt>Guests</dt><dd><?= (int)$draft['guests'] ?></dd>
+        <dt>Table</dt><dd><?= $previewTable ? e($previewTable['table_number']) : 'No table free for this slot' ?></dd>
+        <dt>Package</dt><dd><?= e($preview['package']['name']) ?></dd>
+        <dt>Optional sides</dt><dd><?= $preview['extras'] ? e(implode(', ', array_column($preview['extras'], 'name'))) : 'None' ?></dd>
+        <dt>Total</dt><dd><strong><?= money($preview['total']) ?></strong></dd>
+    </dl>
     <form method="post">
         <?= csrf_field() ?>
         <label>Payment method
@@ -85,6 +91,7 @@ require dirname(__DIR__) . '/frontend/layout/header.php';
         </label>
         <p class="muted">The demo option only labels this booking “simulated paid.” No card details are collected and no money moves.</p>
         <button type="submit">Confirm booking</button>
+        <a class="button secondary" href="<?= e(app_url('review-payment/review.php')) ?>">Back to review</a>
     </form>
 </section>
 <?php require dirname(__DIR__) . '/frontend/layout/footer.php'; ?>
