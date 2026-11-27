@@ -13,9 +13,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!$id || !in_array($action, ['payment_unpaid', 'payment_simulated_paid', 'no_show'], true)) {
         $error = 'Invalid reservation action.';
     } elseif (str_starts_with($action, 'payment_')) {
-        // The transaction saves the payment status change together, or cancels it.
         $connection->beginTransaction();
-        // The reservation row is locked while it is being changed.
         $find = $connection->prepare('SELECT id FROM reservations WHERE id = ? FOR UPDATE');
         $find->execute([$id]);
         if (!$find->fetch()) {
@@ -30,9 +28,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             redirect('admin/index.php');
         }
     } else {
-        // The transaction saves the no-show status and released slot together, or cancels both changes.
         $connection->beginTransaction();
-        // The reservation row is locked while it is being changed.
         $find = $connection->prepare('SELECT reservation_date, reservation_time, reservation_status FROM reservations WHERE id = ? FOR UPDATE');
         $find->execute([$id]);
         $reservation = $find->fetch();
@@ -54,7 +50,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $today = (new DateTimeImmutable('today', new DateTimeZone('Asia/Manila')))->format('Y-m-d');
-// This total excludes cancelled reservations; it includes simulated payments for active and no-show bookings.
 $statsQuery = $connection->prepare("
     SELECT 
         COUNT(CASE WHEN reservation_status = 'active' THEN 1 END) AS active_count,
@@ -93,7 +88,6 @@ if ($dateFilter === 'today') {
     $params[] = $today;
 }
 
-// The subquery lists saved extra names without grouping all reservation columns.
 $sql = 'SELECT r.id, u.name AS customer_name, u.phone, r.reservation_date, r.reservation_time,
                r.guest_count, COALESCE(r.table_number_snapshot, t.table_number) AS table_number,
                COALESCE(r.package_name_snapshot, mp.name) AS package_name,

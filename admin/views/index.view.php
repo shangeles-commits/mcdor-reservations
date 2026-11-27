@@ -79,6 +79,8 @@
             </thead>
             <tbody>
                 <?php foreach ($reservations as $row): ?>
+                    <?php $canMarkNoShow = $row['reservation_status'] === 'active'
+                        && reservation_datetime_has_passed($row['reservation_date'], $row['reservation_time']); ?>
                     <tr>
                         <td>#<?= (int)$row['id'] ?></td>
                         <td>
@@ -107,8 +109,10 @@
                                 <select name="action" aria-label="Staff action">
                                     <option value="payment_unpaid">Set unpaid</option>
                                     <option value="payment_simulated_paid">Set paid</option>
-                                    <?php if ($row['reservation_status'] === 'active' && reservation_datetime_has_passed($row['reservation_date'], $row['reservation_time'])): ?>
-                                        <option value="no_show">Mark no-show</option>
+                                    <?php if ($row['reservation_status'] === 'active'): ?>
+                                        <option value="no_show" <?= $canMarkNoShow ? '' : 'disabled' ?>>
+                                            <?= $canMarkNoShow ? 'Mark no-show' : 'Mark no-show (after booking time)' ?>
+                                        </option>
                                     <?php endif; ?>
                                 </select>
                                 <button type="submit">Apply</button>
