@@ -1,8 +1,7 @@
 <?php
 require dirname(__DIR__) . '/includes/bootstrap.php';
 $user = require_login();
-$reservationId = (int)($_SESSION['recent_reservation_id'] ?? 0);
-unset($_SESSION['recent_reservation_id']);
+$reservationId = (int)filter_var($_GET['id'] ?? 0, FILTER_VALIDATE_INT);
 $reservation = find_owned_reservation(db(), $reservationId, (int)$user['id']);
 if (!$reservation) {
     flash('Reservation receipt was not found.', 'error');
