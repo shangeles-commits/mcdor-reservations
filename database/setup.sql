@@ -50,6 +50,8 @@ CREATE TABLE IF NOT EXISTS reservations (
     user_id INT UNSIGNED NOT NULL,
     table_id INT UNSIGNED NOT NULL,
     package_id INT UNSIGNED NOT NULL,
+    package_name_snapshot VARCHAR(120) NOT NULL,
+    table_number_snapshot VARCHAR(20) NOT NULL,
     reservation_date DATE NOT NULL,
     reservation_time TIME NOT NULL,
     guest_count TINYINT UNSIGNED NOT NULL,
@@ -75,6 +77,7 @@ CREATE TABLE IF NOT EXISTS reservations (
 CREATE TABLE IF NOT EXISTS reservation_extras (
     reservation_id INT UNSIGNED NOT NULL,
     extra_id INT UNSIGNED NOT NULL,
+    extra_name_snapshot VARCHAR(100) NOT NULL,
     extra_price_snapshot DECIMAL(10,2) NOT NULL,
     PRIMARY KEY (reservation_id, extra_id),
     CONSTRAINT fk_re_reservation FOREIGN KEY (reservation_id) REFERENCES reservations(id),

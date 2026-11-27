@@ -50,3 +50,31 @@ if ($usesDatabase && ($missingConfig || $missingDriver)) {
     <?php
     exit;
 }
+
+// Keep the public homepage available without MySQL; database pages show a friendly connection message.
+if ($usesDatabase) {
+    try {
+        db();
+    } catch (RuntimeException $error) {
+        error_log('Database unavailable: ' . $error->getMessage());
+        http_response_code(503);
+        header('Content-Type: text/html; charset=UTF-8');
+        ?>
+        <!doctype html>
+        <html lang="en">
+        <head>
+            <meta charset="utf-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1">
+            <title>Database unavailable</title>
+        </head>
+        <body>
+            <main>
+                <h1>Database unavailable</h1>
+                <p>The database is unavailable. Please check that MySQL is running and try again.</p>
+            </main>
+        </body>
+        </html>
+        <?php
+        exit;
+    }
+}

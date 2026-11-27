@@ -52,7 +52,8 @@ require dirname(__DIR__) . '/frontend/layout/header.php';
 <section class="panel">
     <h1>Choose a date and time</h1>
     <p>Pick a date, time, and party size. We’ll assign the smallest available table that fits your group.</p>
-    <p class="muted">Times are in Asia/Manila. Reservations must be at least 2 hours ahead and within the next 30 days.</p>
+    <p class="muted"><?= e(reservation_slots_label()) ?></p>
+    <p class="muted">Reservations must be at least 2 hours ahead and within the next 30 days.</p>
     <?php if ($error): ?><p class="notice error"><?= e($error) ?></p><?php endif; ?>
     <form method="post">
         <?= csrf_field() ?>

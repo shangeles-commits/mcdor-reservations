@@ -25,7 +25,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 throw new InvalidArgumentException('Extra item no longer exists.');
             }
             $connection->prepare('UPDATE extras SET active = 0 WHERE id = ?')->execute([$id]);
-            flash('Extra deactivated; historical receipts remain unchanged.', 'success');
+            flash('Extra deactivated; saved reservation names and prices remain unchanged after the name snapshot update.', 'success');
             redirect('admin/extras.php');
         }
 

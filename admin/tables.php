@@ -25,7 +25,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 throw new InvalidArgumentException('Table no longer exists.');
             }
             $connection->prepare('UPDATE dining_tables SET active = 0 WHERE id = ?')->execute([$id]);
-            flash('Table deactivated; historical reservations remain intact.', 'success');
+            flash('Table deactivated; saved reservation table numbers remain unchanged after the name snapshot update.', 'success');
             redirect('admin/tables.php');
         }
 

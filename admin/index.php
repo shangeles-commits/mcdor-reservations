@@ -13,39 +13,53 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!$id || !in_array($action, ['payment_unpaid', 'payment_simulated_paid', 'no_show'], true)) {
         $error = 'Invalid reservation action.';
     } elseif (str_starts_with($action, 'payment_')) {
-        $exists = $connection->prepare('SELECT id FROM reservations WHERE id = ?');
-        $exists->execute([$id]);
-        if (!$exists->fetchColumn()) {
+        // The transaction saves the payment status change together, or cancels it.
+        $connection->beginTransaction();
+        // The reservation row is locked while it is being changed.
+        $find = $connection->prepare('SELECT id FROM reservations WHERE id = ? FOR UPDATE');
+        $find->execute([$id]);
+        if (!$find->fetch()) {
+            $connection->rollBack();
             $error = 'Reservation not found.';
         } else {
             $status = $action === 'payment_unpaid' ? 'unpaid' : 'simulated_paid';
             $update = $connection->prepare('UPDATE reservations SET payment_status = ? WHERE id = ?');
             $update->execute([$status, $id]);
+            $connection->commit();
             flash('Payment status updated.', 'success');
             redirect('admin/index.php');
         }
     } else {
+        // The transaction saves the no-show status and released slot together, or cancels both changes.
         $connection->beginTransaction();
-        $update = $connection->prepare("UPDATE reservations SET reservation_status = 'no_show' WHERE id = ? AND reservation_status = 'active'");
-        $update->execute([$id]);
-        if ($update->rowCount() > 0) {
+        // The reservation row is locked while it is being changed.
+        $find = $connection->prepare('SELECT reservation_date, reservation_time, reservation_status FROM reservations WHERE id = ? FOR UPDATE');
+        $find->execute([$id]);
+        $reservation = $find->fetch();
+        if (!$reservation || $reservation['reservation_status'] !== 'active') {
+            $connection->rollBack();
+            $error = 'Only active reservations can be marked no-show.';
+        } elseif (!reservation_datetime_has_passed($reservation['reservation_date'], $reservation['reservation_time'])) {
+            $connection->rollBack();
+            $error = 'A reservation can be marked no-show only after its scheduled date and time.';
+        } else {
+            $connection->prepare("UPDATE reservations SET reservation_status = 'no_show' WHERE id = ?")
+                ->execute([$id]);
             $connection->prepare('DELETE FROM occupied_slots WHERE reservation_id = ?')->execute([$id]);
             $connection->commit();
             flash('Reservation marked no-show and its slot released.', 'success');
             redirect('admin/index.php');
-        } else {
-            $connection->rollBack();
-            $error = 'Only active reservations can be marked no-show.';
         }
     }
 }
 
-$today = date('Y-m-d');
+$today = (new DateTimeImmutable('today', new DateTimeZone('Asia/Manila')))->format('Y-m-d');
+// This total excludes cancelled reservations; it includes demo payments for active and no-show bookings.
 $statsQuery = $connection->prepare("
     SELECT 
         COUNT(CASE WHEN reservation_status = 'active' THEN 1 END) AS active_count,
         COALESCE(SUM(CASE WHEN reservation_date = ? AND reservation_status = 'active' THEN guest_count ELSE 0 END), 0) AS today_guests,
-        COALESCE(SUM(CASE WHEN payment_status = 'simulated_paid' AND reservation_status != 'cancelled' THEN total_price ELSE 0 END), 0) AS total_revenue
+        COALESCE(SUM(CASE WHEN payment_status = 'simulated_paid' AND reservation_status != 'cancelled' THEN total_price ELSE 0 END), 0) AS simulated_booking_total
     FROM reservations
 ");
 $statsQuery->execute([$today]);
@@ -79,22 +93,26 @@ if ($dateFilter === 'today') {
     $params[] = $today;
 }
 
+// The subquery lists saved extra names without grouping all reservation columns.
 $sql = 'SELECT r.id, u.name AS customer_name, u.phone, r.reservation_date, r.reservation_time,
-               r.guest_count, t.table_number, mp.name AS package_name,
-               GROUP_CONCAT(e.name SEPARATOR ", ") AS extras_list,
+               r.guest_count, COALESCE(r.table_number_snapshot, t.table_number) AS table_number,
+               COALESCE(r.package_name_snapshot, mp.name) AS package_name,
+               (SELECT GROUP_CONCAT(COALESCE(re.extra_name_snapshot, e.name)
+                                    ORDER BY COALESCE(re.extra_name_snapshot, e.name) SEPARATOR ", ")
+                FROM reservation_extras re
+                JOIN extras e ON e.id = re.extra_id
+                WHERE re.reservation_id = r.id) AS extras_list,
                r.total_price, r.payment_status, r.reservation_status
         FROM reservations r 
         JOIN users u ON u.id = r.user_id 
         JOIN dining_tables t ON t.id = r.table_id
-        JOIN menu_packages mp ON mp.id = r.package_id
-        LEFT JOIN reservation_extras re ON re.reservation_id = r.id
-        LEFT JOIN extras e ON e.id = re.extra_id';
+        JOIN menu_packages mp ON mp.id = r.package_id';
 
 if ($where) {
     $sql .= ' WHERE ' . implode(' AND ', $where);
 }
 
-$sql .= ' GROUP BY r.id ORDER BY r.reservation_date DESC, r.reservation_time DESC';
+$sql .= ' ORDER BY r.reservation_date DESC, r.reservation_time DESC';
 
 $query = $connection->prepare($sql);
 $query->execute($params);

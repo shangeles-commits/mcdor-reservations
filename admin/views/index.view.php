@@ -13,16 +13,18 @@
 
     <div class="stats-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
         <div class="stat-card" style="padding: 1rem; border: 1px solid #ddd; border-radius: 6px;">
-            <small>Active Bookings</small>
+            <small>All Active Reservations</small>
             <h2 style="margin: 0.25rem 0 0;"><?= (int)$stats['active_count'] ?></h2>
         </div>
         <div class="stat-card" style="padding: 1rem; border: 1px solid #ddd; border-radius: 6px;">
-            <small>Today's Expected Guests</small>
+            <small>Today's Active Guests</small>
             <h2 style="margin: 0.25rem 0 0;"><?= (int)$stats['today_guests'] ?> pax</h2>
         </div>
         <div class="stat-card" style="padding: 1rem; border: 1px solid #ddd; border-radius: 6px;">
-            <small>Collected Simulated Revenue</small>
-            <h2 style="margin: 0.25rem 0 0;"><?= money($stats['total_revenue']) ?></h2>
+            <small>Simulated Booking Total</small>
+            <h2 style="margin: 0.25rem 0 0;"><?= money($stats['simulated_booking_total']) ?></h2>
+            <small>Demo amount only; no real payment was collected.</small><br>
+            <small>Excludes cancelled reservations; includes active and no-show demo bookings.</small>
         </div>
     </div>
 
@@ -40,9 +42,9 @@
             Status
             <select name="status">
                 <option value="">All statuses</option>
-                <option value="active" <?= $statusFilter === 'active' ? 'selected' : '' ?>>Active</option>
-                <option value="cancelled" <?= $statusFilter === 'cancelled' ? 'selected' : '' ?>>Cancelled</option>
-                <option value="no_show" <?= $statusFilter === 'no_show' ? 'selected' : '' ?>>No-Show</option>
+                <option value="active" <?= $statusFilter === 'active' ? 'selected' : '' ?>><?= e(reservation_status_label('active')) ?></option>
+                <option value="cancelled" <?= $statusFilter === 'cancelled' ? 'selected' : '' ?>><?= e(reservation_status_label('cancelled')) ?></option>
+                <option value="no_show" <?= $statusFilter === 'no_show' ? 'selected' : '' ?>><?= e(reservation_status_label('no_show')) ?></option>
             </select>
         </label>
 
@@ -84,8 +86,7 @@
                             <small><?= e($row['phone']) ?></small>
                         </td>
                         <td>
-                            <?= e($row['reservation_date']) ?><br>
-                            <small><?= e(substr((string)$row['reservation_time'], 0, 5)) ?></small>
+                            <?= e(reservation_datetime_label($row['reservation_date'], $row['reservation_time'])) ?>
                         </td>
                         <td>
                             <?= e($row['table_number']) ?> (<?= (int)$row['guest_count'] ?> pax)
@@ -97,8 +98,8 @@
                             <?php endif; ?>
                         </td>
                         <td><?= money($row['total_price']) ?></td>
-                        <td><?= e($row['payment_status']) ?></td>
-                        <td><?= e($row['reservation_status']) ?></td>
+                        <td><?= e(payment_status_label($row['payment_status'])) ?></td>
+                        <td><?= e(reservation_status_label($row['reservation_status'])) ?></td>
                         <td>
                             <form method="post" class="inline-actions">
                                 <?= csrf_field() ?>
@@ -106,7 +107,7 @@
                                 <select name="action" aria-label="Staff action">
                                     <option value="payment_unpaid">Set unpaid</option>
                                     <option value="payment_simulated_paid">Set simulated paid</option>
-                                    <?php if ($row['reservation_status'] === 'active'): ?>
+                                    <?php if ($row['reservation_status'] === 'active' && reservation_datetime_has_passed($row['reservation_date'], $row['reservation_time'])): ?>
                                         <option value="no_show">Mark no-show</option>
                                     <?php endif; ?>
                                 </select>

@@ -25,7 +25,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 throw new InvalidArgumentException('Package no longer exists.');
             }
             $connection->prepare('UPDATE menu_packages SET active = 0 WHERE id = ?')->execute([$id]);
-            flash('Package deactivated; existing receipts remain unchanged.', 'success');
+            flash('Package deactivated; saved reservation names and prices remain unchanged after the name snapshot update.', 'success');
             redirect('admin/packages.php');
         }
 

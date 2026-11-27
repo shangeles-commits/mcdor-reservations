@@ -16,7 +16,7 @@ function app_url(string $path = ''): string
     return $base . '/' . ltrim($path, '/');
 }
 
-function redirect(string $path): never
+function redirect(string $path)
 {
     header('Location: ' . app_url($path));
     exit;
@@ -84,6 +84,56 @@ function take_flash(): ?array
 function allowed_slots(): array
 {
     return ['11:00', '13:00', '15:00', '17:00', '19:00'];
+}
+
+function reservation_slots_label(): string
+{
+    $slotLabels = array_map(
+        static fn(string $slot): string => (new DateTimeImmutable($slot))->format('g A'),
+        allowed_slots()
+    );
+    $lastSlot = array_pop($slotLabels);
+    return 'Reservation slots: ' . implode(', ', $slotLabels) . ', and ' . $lastSlot . ', Manila time.';
+}
+
+function reservation_datetime_label(string $date, string $time): string
+{
+    return (new DateTimeImmutable($date . ' ' . $time, new DateTimeZone('Asia/Manila')))
+        ->format('F j, Y \a\t g:i A');
+}
+
+function reservation_datetime_has_passed(string $date, string $time): bool
+{
+    $reservationTimestamp = strtotime($date . ' ' . $time);
+    return $reservationTimestamp !== false && $reservationTimestamp < time();
+}
+
+function reservation_status_label(string $status): string
+{
+    $labels = [
+        'active' => 'Active',
+        'cancelled' => 'Cancelled',
+        'no_show' => 'No-show',
+    ];
+    return $labels[$status] ?? ucfirst(str_replace('_', ' ', $status));
+}
+
+function payment_status_label(string $status): string
+{
+    $labels = [
+        'unpaid' => 'Unpaid',
+        'simulated_paid' => 'Simulated paid',
+    ];
+    return $labels[$status] ?? ucfirst(str_replace('_', ' ', $status));
+}
+
+function payment_method_label(string $method): string
+{
+    $labels = [
+        'pay_at_restaurant' => 'Pay at the restaurant',
+        'demo_simulated' => 'Demo payment',
+    ];
+    return $labels[$method] ?? ucfirst(str_replace('_', ' ', $method));
 }
 
 function valid_reservation_datetime(string $date, string $time): bool
@@ -187,7 +237,8 @@ function find_owned_reservation(PDO $connection, int $reservationId, int $userId
 {
     // Match both IDs so a customer cannot look up another account's reservation.
     $query = $connection->prepare(
-        'SELECT r.*, t.table_number, p.name AS package_name, u.name AS customer_name
+        'SELECT r.*, COALESCE(r.table_number_snapshot, t.table_number) AS table_number,
+                COALESCE(r.package_name_snapshot, p.name) AS package_name, u.name AS customer_name
          FROM reservations r
          JOIN dining_tables t ON t.id = r.table_id
          JOIN menu_packages p ON p.id = r.package_id
@@ -200,8 +251,9 @@ function find_owned_reservation(PDO $connection, int $reservationId, int $userId
         return null;
     }
     $extras = $connection->prepare(
-        'SELECT e.name, re.extra_price_snapshot FROM reservation_extras re
-         JOIN extras e ON e.id = re.extra_id WHERE re.reservation_id = ? ORDER BY e.name'
+        'SELECT COALESCE(re.extra_name_snapshot, e.name) AS name, re.extra_price_snapshot
+         FROM reservation_extras re
+        JOIN extras e ON e.id = re.extra_id WHERE re.reservation_id = ? ORDER BY re.extra_name_snapshot'
     );
     $extras->execute([$reservationId]);
     $row['extras'] = $extras->fetchAll();

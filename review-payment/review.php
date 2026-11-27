@@ -23,7 +23,7 @@ require dirname(__DIR__) . '/frontend/layout/header.php';
 <section class="panel narrow">
     <h1>Review your reservation</h1>
     <dl class="receipt">
-        <dt>Date and time</dt><dd><?= e($draft['date']) ?> at <?= e($draft['time']) ?></dd>
+        <dt>Date and time</dt><dd><?= e(reservation_datetime_label($draft['date'], $draft['time'])) ?></dd>
         <dt>Guests</dt><dd><?= (int)$draft['guests'] ?></dd>
         <dt>Assigned table</dt><dd><?= e($table['table_number']) ?> (capacity <?= (int)$table['capacity'] ?>)</dd>
         <dt>Package</dt><dd><?= e($prices['package']['name']) ?> — <?= money($prices['package']['price_per_guest']) ?> per guest</dd>

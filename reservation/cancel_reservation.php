@@ -12,11 +12,14 @@ if (!$id || $id < 1) {
     exit('Invalid reservation ID.');
 }
 $connection = db();
-// Keep the cancelled reservation for history while freeing its table and time.
+// The transaction saves the cancelled status and frees its slot together.
 $connection->beginTransaction();
-$update = $connection->prepare("UPDATE reservations SET reservation_status = 'cancelled' WHERE id = ? AND user_id = ? AND reservation_status = 'active'");
-$update->execute([$id, $user['id']]);
-if ($update->rowCount() > 0) {
+// The reservation row is locked while it is being changed.
+$find = $connection->prepare('SELECT reservation_status FROM reservations WHERE id = ? AND user_id = ? FOR UPDATE');
+$find->execute([$id, $user['id']]);
+$reservation = $find->fetch();
+if ($reservation && $reservation['reservation_status'] === 'active') {
+    $connection->prepare("UPDATE reservations SET reservation_status = 'cancelled' WHERE id = ?")->execute([$id]);
     $connection->prepare('DELETE FROM occupied_slots WHERE reservation_id = ?')->execute([$id]);
     $connection->commit();
     $_SESSION['reservation_lookup_id'] = $id;

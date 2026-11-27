@@ -75,7 +75,11 @@ Replace `YOUR_REGISTERED_PHONE` with the phone number used during signup. The sc
 
 ## Database and booking behavior
 
-Use the shared-function contracts in [docs/TEAM_WORKFLOW.md](docs/TEAM_WORKFLOW.md). Dates use `Asia/Manila`; slots are 11:00, 13:00, 15:00, 17:00, and 19:00, at least two hours ahead and no more than 30 days out. There are 1–8 guests and the smallest available active table that fits is assigned. Final checkout recalculates current prices and checks availability again in an InnoDB transaction. A unique constraint prevents concurrent bookings for the same table/date/time. Reservation and extra price snapshots retain historical receipt amounts if menu prices change.
+Use the shared-function contracts in [docs/TEAM_WORKFLOW.md](docs/TEAM_WORKFLOW.md). Dates use `Asia/Manila`; slots are 11:00, 13:00, 15:00, 17:00, and 19:00, at least two hours ahead and no more than 30 days out. There are 1–8 guests and the smallest available active table that fits is assigned. Final checkout recalculates current prices and checks availability again in an InnoDB transaction. A unique constraint prevents concurrent bookings for the same table/date/time. Package and extra price and name snapshots, plus the saved table number, preserve the values shown on historical receipts if menu records are renamed or repriced.
+
+### Existing database update: saved reservation names
+
+For a database created before name snapshots were added, first back up the database. In phpMyAdmin, select `mcdor_reservations`, open the **Import** tab, choose `database/001_reservation_name_snapshots.sql`, and select **Import** (or **Go**) to run it once. Do not run this update a second time because its columns have already been added. It copies the current package, table, and extra names into existing reservations. Names that were changed before this update cannot be recovered automatically; the migration can only copy the names currently stored in the related records.
 
 Only active bookings have an `occupied_slots` row. Reschedule, cancellation, and no-show actions update the status and occupied slot transactionally. Customers can see only reservations owned by their account.
 

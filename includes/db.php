@@ -71,6 +71,14 @@ function db(): PDO
     }
 
     $config = require $setup['config_path'];
+    if (!is_array($config)
+        || !isset($config['dsn'], $config['database'], $config['username'], $config['password'])
+        || !is_string($config['dsn'])
+        || !is_string($config['database'])
+        || !is_string($config['username'])
+        || !is_string($config['password'])) {
+        throw new RuntimeException('The local database settings are incomplete or invalid.');
+    }
     if (!preg_match('/^[A-Za-z0-9_]+$/', $config['database'])) {
         throw new RuntimeException('The MySQL database name in the local config is invalid.');
     }
@@ -87,6 +95,8 @@ function db(): PDO
         $connection->exec('USE `' . $config['database'] . '`');
         initialize_database($connection);
     } catch (PDOException $error) {
+        // Keep connection details out of the page, but write the database error to the PHP log.
+        error_log('Database connection or setup failed: ' . $error->getMessage());
         throw new RuntimeException('Could not connect to or initialize MySQL. Start MySQL in XAMPP and check the local account permissions and config.local.php.', 0, $error);
     }
     return $connection;

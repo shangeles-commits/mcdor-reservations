@@ -38,19 +38,6 @@ if ($selectedId !== null) {
         $error = 'That reservation could not be found. Choose another reservation.';
     }
 }
-$paymentMethodLabels = [
-    'pay_at_restaurant' => 'Pay at the restaurant',
-    'demo_simulated' => 'Demo payment',
-];
-$paymentStatusLabels = [
-    'unpaid' => 'Unpaid',
-    'simulated_paid' => 'Demo paid',
-];
-$reservationStatusLabels = [
-    'active' => 'Active',
-    'cancelled' => 'Cancelled',
-    'no_show' => 'No-show',
-];
 $pageTitle = 'My reservation';
 require dirname(__DIR__) . '/frontend/layout/header.php';
 ?>
@@ -66,14 +53,13 @@ require dirname(__DIR__) . '/frontend/layout/header.php';
                 <?php foreach ($reservations as $option): ?>
                     <?php
                     $optionId = (int)$option['id'];
-                    $dateLabel = (new DateTimeImmutable($option['reservation_date']))->format('M j, Y');
-                    $timeLabel = (new DateTimeImmutable($option['reservation_time']))->format('g:i A');
-                    $methodLabel = $paymentMethodLabels[$option['payment_method']] ?? ucfirst(str_replace('_', ' ', $option['payment_method']));
-                    $paymentLabel = $paymentStatusLabels[$option['payment_status']] ?? ucfirst(str_replace('_', ' ', $option['payment_status']));
-                    $statusLabel = $reservationStatusLabels[$option['reservation_status']] ?? ucfirst(str_replace('_', ' ', $option['reservation_status']));
+                    $dateTimeLabel = reservation_datetime_label($option['reservation_date'], $option['reservation_time']);
+                    $methodLabel = payment_method_label($option['payment_method']);
+                    $paymentLabel = payment_status_label($option['payment_status']);
+                    $statusLabel = reservation_status_label($option['reservation_status']);
                     ?>
                     <option value="<?= $optionId ?>" <?= $selectedId === $optionId ? 'selected' : '' ?>>
-                        <?= e('#' . $optionId . ' · ' . $dateLabel . ' at ' . $timeLabel . ' · ' . $methodLabel . ' · Payment: ' . $paymentLabel . ' · Reservation: ' . $statusLabel) ?>
+                        <?= e('#' . $optionId . ' · ' . $dateTimeLabel . ' · ' . $methodLabel . ' · Payment: ' . $paymentLabel . ' · Reservation: ' . $statusLabel) ?>
                     </option>
                 <?php endforeach; ?>
             </select>

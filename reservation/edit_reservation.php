@@ -20,12 +20,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $time = is_string($timeInput) ? trim($timeInput) : '';
     $connection = db();
     try {
-        // Release and claim slots inside one transaction so a failed move keeps the old slot.
+        // The reservation row is locked while it is being changed.
+        // The transaction saves the new reservation and slot together, or cancels both changes.
         $connection->beginTransaction();
-        $owned = $connection->prepare("SELECT id, guest_count FROM reservations WHERE id = ? AND user_id = ? AND reservation_status = 'active'");
+        $owned = $connection->prepare('SELECT id, guest_count, reservation_status FROM reservations WHERE id = ? AND user_id = ? FOR UPDATE');
         $owned->execute([$id, $user['id']]);
         $current = $owned->fetch();
-        if (!$current) {
+        if (!$current || $current['reservation_status'] !== 'active') {
             throw new DomainException('Reservation is no longer active.');
         }
         if (!valid_reservation_datetime($date, $time)) {
@@ -36,8 +37,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (!$table) {
             throw new DomainException('No table is available for that time. Your original booking is unchanged.');
         }
-        $connection->prepare('UPDATE reservations SET table_id = ?, reservation_date = ?, reservation_time = ? WHERE id = ?')
-            ->execute([$table['id'], $date, $time, $id]);
+        $connection->prepare('UPDATE reservations SET table_id = ?, table_number_snapshot = ?, reservation_date = ?, reservation_time = ? WHERE id = ?')
+            ->execute([$table['id'], $table['table_number'], $date, $time, $id]);
         $connection->prepare('INSERT INTO occupied_slots (reservation_id, table_id, reservation_date, reservation_time) VALUES (?, ?, ?, ?)')
             ->execute([$id, $table['id'], $date, $time]);
         $connection->commit();
@@ -72,7 +73,8 @@ require dirname(__DIR__) . '/frontend/layout/header.php';
 <section class="panel narrow">
     <h1>Change reservation time</h1>
     <p>Reservation #<?= (int)$reservation['id'] ?> · <?= (int)$reservation['guest_count'] ?> guest(s)</p>
-    <p class="muted">Choose a time at least 2 hours ahead, within the next 30 days. Times are in Asia/Manila.</p>
+    <p class="muted"><?= e(reservation_slots_label()) ?></p>
+    <p class="muted">Choose a time at least 2 hours ahead, within the next 30 days.</p>
     <?php if ($error): ?><p class="notice error"><?= e($error) ?></p><?php endif; ?>
     <form method="post">
         <?= csrf_field() ?><input type="hidden" name="reservation_id" value="<?= (int)$reservation['id'] ?>">
