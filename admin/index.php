@@ -54,7 +54,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $today = (new DateTimeImmutable('today', new DateTimeZone('Asia/Manila')))->format('Y-m-d');
-// This total excludes cancelled reservations; it includes demo payments for active and no-show bookings.
+// This total excludes cancelled reservations; it includes simulated payments for active and no-show bookings.
 $statsQuery = $connection->prepare("
     SELECT 
         COUNT(CASE WHEN reservation_status = 'active' THEN 1 END) AS active_count,

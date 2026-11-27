@@ -23,8 +23,8 @@
         <div class="stat-card" style="padding: 1rem; border: 1px solid #ddd; border-radius: 6px;">
             <small>Simulated Booking Total</small>
             <h2 style="margin: 0.25rem 0 0;"><?= money($stats['simulated_booking_total']) ?></h2>
-            <small>Demo amount only; no real payment was collected.</small><br>
-            <small>Excludes cancelled reservations; includes active and no-show demo bookings.</small>
+            <small>Simulated amount only; no real payment was collected.</small><br>
+            <small>Excludes cancelled reservations; includes active and no-show simulated payments.</small>
         </div>
     </div>
 
@@ -106,7 +106,7 @@
                                 <input type="hidden" name="reservation_id" value="<?= (int)$row['id'] ?>">
                                 <select name="action" aria-label="Staff action">
                                     <option value="payment_unpaid">Set unpaid</option>
-                                    <option value="payment_simulated_paid">Set simulated paid</option>
+                                    <option value="payment_simulated_paid">Set paid</option>
                                     <?php if ($row['reservation_status'] === 'active' && reservation_datetime_has_passed($row['reservation_date'], $row['reservation_time'])): ?>
                                         <option value="no_show">Mark no-show</option>
                                     <?php endif; ?>

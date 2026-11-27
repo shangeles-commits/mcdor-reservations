@@ -92,7 +92,6 @@ require dirname(__DIR__) . '/frontend/layout/header.php';
                 <option value="demo_simulated"><?= e(payment_method_label('demo_simulated')) ?></option>
             </select>
         </label>
-        <p class="muted">The demo option only labels this booking “simulated paid.” No card details are collected and no money moves.</p>
         <button type="submit">Confirm booking</button>
         <a class="button secondary" href="<?= e(app_url('review-payment/review.php')) ?>">Back to review</a>
     </form>

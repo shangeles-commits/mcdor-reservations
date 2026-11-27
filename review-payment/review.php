@@ -31,7 +31,7 @@ require dirname(__DIR__) . '/frontend/layout/header.php';
         <dt>Total</dt><dd><strong><?= money($prices['total']) ?></strong> (per guest × <?= (int)$draft['guests'] ?> guests)</dd>
     </dl>
     <p class="muted">The table and total are verified again when you confirm.</p>
-    <a class="button" href="<?= e(app_url('review-payment/checkout.php')) ?>">Continue to payment simulation</a>
+    <a class="button" href="<?= e(app_url('review-payment/checkout.php')) ?>">Continue to payment</a>
     <a class="button secondary" href="<?= e(app_url('menu/menu.php')) ?>">Change menu</a>
 </section>
 <?php require dirname(__DIR__) . '/frontend/layout/footer.php'; ?>

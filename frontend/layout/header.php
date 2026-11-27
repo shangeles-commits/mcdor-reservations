@@ -19,19 +19,15 @@ $stylesheetVersion = filemtime(__DIR__ . '/../css/style.css');
             <span class="brand-mark" aria-hidden="true">M</span>
             <span class="brand-copy"><strong>McDor</strong><small>RESTAURANT</small></span>
         </a>
-        <nav class="primary-nav" aria-label="Main navigation">
-            <?php if (!empty($isHomePage)): ?>
-                <a href="#story">Our story</a>
-                <a href="#experience">Experience</a>
-                <a href="#contact">Contact</a>
-            <?php else: ?>
+        <?php if (empty($isHomePage)): ?>
+            <nav class="primary-nav" aria-label="Main navigation">
                 <a href="<?= e(app_url('index.php')) ?>">Home</a>
                 <?php if ($signedInUser): ?>
                     <a href="<?= e(app_url('reservation/booking.php')) ?>">Book a table</a>
                     <a href="<?= e(app_url('reservation/my_reservation.php')) ?>">My reservations</a>
                 <?php endif; ?>
-            <?php endif; ?>
-        </nav>
+            </nav>
+        <?php endif; ?>
         <div class="header-actions">
             <?php if ($signedInUser): ?>
                 <span class="nav-user"><?= e($signedInUser['name']) ?></span>

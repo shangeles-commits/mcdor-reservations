@@ -121,10 +121,12 @@ hr {
 }
 
 .primary-nav {
+    grid-column: 2;
     justify-content: center;
 }
 
 .header-actions {
+    grid-column: 3;
     justify-content: flex-end;
 }
 
@@ -157,7 +159,8 @@ hr {
 }
 
 .nav-logout {
-    display: inline;
+    display: flex;
+    align-items: center;
     margin: 0;
 }
 
@@ -900,6 +903,8 @@ th {
     }
 
     .header-actions {
+        grid-column: 2;
+        grid-row: 1;
         gap: 0.8rem;
     }
 

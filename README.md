@@ -2,9 +2,9 @@
 
 **WEB APPLICATION - FINALPROJECT**
 
-## McDor Restaurant Reservation Prototype
+## McDor Restaurant Reservation System
 
-A lightweight PHP 8 and MySQL/MariaDB prototype for XAMPP. It uses plain PHP pages, PDO_MYSQL, and simple HTML/CSS. Demo payment is only a status label: this app does not collect card data or move money.
+A lightweight PHP 8 and MySQL/MariaDB system for XAMPP. It uses plain PHP pages, PDO_MYSQL, and simple HTML/CSS. Payment selections only record a simulated status; the app does not collect card data or process real payments.
 
 ## Requirements
 
@@ -45,7 +45,7 @@ Place the project under `C:\xampp\htdocs` and open its local URL, for example `h
 php -S localhost:8000
 ```
 
-Open `http://localhost:8000/`. Do not expose this prototype or PHP's development server to the public internet.
+Open `http://localhost:8000/`. Do not expose this application or PHP's development server to the public internet.
 
 ## Admin access (local only)
 

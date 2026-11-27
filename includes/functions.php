@@ -122,7 +122,7 @@ function payment_status_label(string $status): string
 {
     $labels = [
         'unpaid' => 'Unpaid',
-        'simulated_paid' => 'Simulated paid',
+        'simulated_paid' => 'Paid',
     ];
     return $labels[$status] ?? ucfirst(str_replace('_', ' ', $status));
 }
@@ -131,7 +131,7 @@ function payment_method_label(string $method): string
 {
     $labels = [
         'pay_at_restaurant' => 'Pay at the restaurant',
-        'demo_simulated' => 'Demo payment',
+        'demo_simulated' => 'Online payment',
     ];
     return $labels[$method] ?? ucfirst(str_replace('_', ' ', $method));
 }
